@@ -181,6 +181,38 @@ const LETTERS = ['A', 'B', 'C', 'D']; // used for the A B C D badges on buttons
  * HTML tags like "<h1>" that would be parsed as real HTML otherwise.
  */
 function renderQuestion() {
+  answered = false; 
+  const currentQuestion = questions[currentIndex];
+  const currentScore = calculateScore(results);
+  const progressPercent = ((currentIndex) / questions.length) * 100;
+  
+  progressBar.style.width= `${progressPercent}%`;
+  questionCounter.textContent = `Question ${currentIndex + 1} of ${questions.length}`;
+  scoreBadge.textContent = `Score: ${currentScore}`;
+  questionText.textContent = currentQuestion.question;
+
+  optionsGrid.textContent = "";
+  feedbackBox.textContent = "";
+  feedbackBox.className = "feedback-box";
+  nextBtn.classList.remove("show");
+
+  currentQuestion.options.forEach((option, index) => {
+    const button = document.createElement("button");
+    button.classList.add("option-btn");
+
+    const letterSpan = document.createElement("span");
+    letterSpan.classList.add("option-letter");
+    letterSpan.textContent = LETTERS[index];
+
+    button.appendChild(letterSpan);
+    button.appendChild(document.createTextNode(option));
+
+    button.addEventListener("click", () => {
+      handleOptionClick(option, button);
+    });
+
+    optionsGrid.appendChild(button);
+  });
 
 }
 
@@ -201,8 +233,49 @@ function renderQuestion() {
  *   7. Reveal the Next button (change its text to "See Results →" on the last question)
  */
 function handleOptionClick(selected, clickedBtn) {
+  if (answered === true) {
+    return;
+}
+
+answered = true;
+
+const currentQuestion = questions[currentIndex];
+const isCorrect = checkAnswer(selected, currentQuestion.correctAnswer);
+
+results.push(isCorrect);
+
+const allButton = optionsGrid.querySelectorAll(".option-btn");
+
+allButton.forEach((button) => {
+  button.disabled = true;
+
+  const buttonText = button.textContent.slice(1);
+
+  if (buttonText === currentQuestion.correctAnswer) {
+    button.classList.add("correct");
+  }
+});
+
+if (isCorrect === true) {
+  clickedBtn.classList.add("correct");
+  feedbackBox.textContent = "Correct! 🎉";
+  feedbackBox.className = "feedback-box show correct";
+} else {
+  clickedBtn.classList.add("wrong");
+  feedbackBox.textContent = `Wrong! The correct answer was "${currentQuestion.correctAnswer}".`;
+  feedbackBox.className = "feedback-box show wrong";
+}
+
+if (currentIndex === questions.length - 1) {
+  nextBtn.textContent = "See Results →";
+} else {
+  nextBtn.textContent = "Next Question →";
+}
+
+nextBtn.classList.add("show");
 
 }
+
 
 
 /*
@@ -217,6 +290,44 @@ function handleOptionClick(selected, clickedBtn) {
  *   3. Hide the quiz card and reveal the results card
  */
 function showResults() {
+  const finalScore = calculateScore(results);
+  const totalQuestions = questions.length;
+  const percentage = Math.round((finalScore / totalQuestions) * 100);
+  const grade = getGrade(finalScore, totalQuestions);
+
+  scoreDisplay.textContent = "";
+
+  const scoreText = document.createTextNode(finalScore);
+  const totalSpan = document.createElement("span");
+
+  totalSpan.textContent = ` / ${totalQuestions}`;
+
+  scoreDisplay.appendChild(scoreText);
+  scoreDisplay.appendChild(totalSpan);
+
+  gradeDisplay.textContent = grade;
+  correctCount.textContent = finalScore;
+  wrongCount.textContent = totalQuestions - finalScore;
+  percentDisplay.textContent = `${percentage}%`;
+
+  if (percentage >= 80) {
+    resultsEmoji.textContent = "👑";
+    resultsTitle.textContent = "A true Keyblade Master!";
+    resultsSubtitle.textContent = "You really know your stuff!";
+  }
+  else if (percentage >= 60) {
+    resultsEmoji.textContent = "🙂";
+    resultsTitle.textContent = "Good effort!";
+    resultsSubtitle.textContent = "Brush up on your knowledge and try again!";
+  } else {
+    resultsEmoji.textContent = "😕";
+    resultsTitle.textContent = "Keep Trying!";
+    resultsSubtitle.textContent = "I think its time to revist the games and try again!";
+  }
+
+  quizCard.style.display = "none";
+  resultsCard.classList.add("show");
+  progressBar.style.width = "100%";
 
 }
 
@@ -232,6 +343,14 @@ function showResults() {
  *   3. Call renderQuestion() to start from the first question
  */
 function restartQuiz() {
+  currentIndex = 0;
+  results = [];
+  answered = false;
+
+  resultsCard.classList.remove("show");
+  quizCard.style.display = "block";
+
+  renderQuestion();
 
 }
 
