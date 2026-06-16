@@ -4,7 +4,7 @@
 This is a browser-based interactive quiz app built with JavaScript for my Week 5 assignment. The quiz is based on a video game called Kingdom Hearts and includes simple questions about the game.
 
 ## Live Link
-
+https://fareehaasif598-cloud.github.io/Kingdom-Hearts-Quiz/
 
 ## Screenshots
 ### Quiz in Progress
